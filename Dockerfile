@@ -2,19 +2,20 @@ FROM alpine:latest
 MAINTAINER NGINX Docker Maintainers "964973791@qq.com"
 ENV NGINX_VERSION nginx-1.14.0
 RUN echo -e "http://mirrors.aliyun.com/alpine/latest-stable/main\nhttp://mirrors.aliyun.com/alpine/latest-stable/community" > /etc/apk/repositories && \
-	apk update && \
-    apk add --no-cache --virtual .build-deps gcc libc-dev make openssl-dev pcre-dev zlib-dev linux-headers curl gnupg libxslt-dev gd-dev geoip-dev wget curl tree ca-certificates tzdata && \
+    apk update && \
+    apk add --no-cache gcc libc-dev make openssl-dev pcre-dev zlib-dev linux-headers curl gnupg libxslt-dev gd-dev geoip-dev wget curl tree ca-certificates tzdata && \
     cp -rf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-RUN mkdir /usr/local/src && wget -P /usr/local/src http://nginx.org/download/$NGINX_VERSION.tar.gz && addgroup -S www && adduser -D -S -h /usr/local/nginx -s /sbin/nologin -G nginx nginx && cd /usr/local/src && tar zxvf $NGINX_VERSION.tar.gz && cd/usr/local/src/$NGINX_VERSION && \
-	./configure --user=www --group=www \
-	--prefix=/usr/local/nginx \
-	--user=www \
-	--group=www \
-	--sbin-path=/usr/sbin/nginx \
-	--modules-path=/usr/local/nginx/modules \
-	--conf-path=/usr/local/nginx/nginx.conf \
-    --error-log-path=/usr/local/nginx/error.log \
-    --http-log-path=/usr/local/nginx/access.log \
+RUN mkdir /usr/local/src && wget -P /usr/local/src http://nginx.org/download/$NGINX_VERSION.tar.gz && addgroup -S www && adduser -D -S -h /usr/local/nginx -s /sbin/nologin -G www www && \
+    cd /usr/local/src && tar zxvf $NGINX_VERSION.tar.gz && cd /usr/local/src/$NGINX_VERSION && \
+    ./configure --user=www --group=www \
+    --prefix=/usr/local/nginx \
+    --user=www \
+    --group=www \
+    --sbin-path=/usr/sbin/nginx \
+    --modules-path=/usr/local/nginx/modules \
+    --conf-path=/usr/local/nginx/nginx.conf \
+    --error-log-path=/usr/local/nginx/logs/error.log \
+    --http-log-path=/usr/local/nginx//logs/access.log \
     --pid-path=/var/run/nginx.pid \
     --lock-path=/var/run/nginx.lock \
     --http-client-body-temp-path=/usr/local/nginx/client_temp \
