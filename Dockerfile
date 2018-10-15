@@ -1,29 +1,23 @@
 FROM alpine:latest
-MAINTAINER NGINX Docker Maintainers "964973791@qq.com"
+MAINTAINER NGINX "964973791@qq.com"
 ENV NGINX_VERSION nginx-1.14.0
+ENV NGINX_OPENSSL openssl-1.1.1
 RUN echo -e "http://mirrors.aliyun.com/alpine/latest-stable/main\nhttp://mirrors.aliyun.com/alpine/latest-stable/community" > /etc/apk/repositories && \
     apk update && \
     apk add --no-cache gcc libc-dev make openssl-dev pcre-dev zlib-dev linux-headers curl gnupg libxslt-dev gd-dev geoip-dev wget curl tree ca-certificates tzdata && \
-    cp -rf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-RUN mkdir /usr/local/src && wget -P /usr/local/src http://nginx.org/download/$NGINX_VERSION.tar.gz && addgroup -S www && adduser -D -S -h /usr/local/nginx -s /sbin/nologin -G www www && \
-    cd /usr/local/src && tar zxvf $NGINX_VERSION.tar.gz && cd /usr/local/src/$NGINX_VERSION && \
+    cp -rf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    wget -P /usr/local/ https://www.openssl.org/source/$NGINX_OPENSSL.tar.gz && \
+    cd /usr/local && tar zxvf $NGINX_OPENSSL.tar.gz && \
+    mv $NGINX_OPENSSL openssl && rm -rf /usr/local/$NGINX_OPENSSL.tar.gz && \
+    mkdir /usr/local/src && wget -P /usr/local/src http://nginx.org/download/$NGINX_VERSION.tar.gz && addgroup -S www && adduser -D -S -s /sbin/nologin -G www www && \
+    cd /usr/local/src && tar zxvf $NGINX_VERSION.tar.gz && rm -rf /usr/local/src/$NGINX_VERSION.tar.gz && cd /usr/local/src/$NGINX_VERSION && \
     ./configure --user=www --group=www \
     --prefix=/usr/local/nginx \
     --user=www \
     --group=www \
-    --sbin-path=/usr/sbin/nginx \
-    --modules-path=/usr/local/nginx/modules \
-    --conf-path=/usr/local/nginx/nginx.conf \
-    --error-log-path=/usr/local/nginx/logs/error.log \
-    --http-log-path=/usr/local/nginx//logs/access.log \
-    --pid-path=/var/run/nginx.pid \
-    --lock-path=/var/run/nginx.lock \
-    --http-client-body-temp-path=/usr/local/nginx/client_temp \
-    --http-proxy-temp-path=/usr/local/nginx/proxy_temp \
-    --http-fastcgi-temp-path=/usr/local/nginx/fastcgi_temp \
-    --http-uwsgi-temp-path=/usr/local/nginx/uwsgi_temp \
-    --http-scgi-temp-path=/usr/local/nginx/scgi_temp \
+    --with-ipv6 \
     --with-http_ssl_module \
+    --with-openssl=/usr/local/openssl \
     --with-http_realip_module \
     --with-http_addition_module \
     --with-http_sub_module \
@@ -51,4 +45,19 @@ RUN mkdir /usr/local/src && wget -P /usr/local/src http://nginx.org/download/$NG
     --with-compat \
     --with-file-aio \
     --with-http_v2_module && \
-    make && make install
+    make && make install && \
+    rm -rf /var/cache/apk/* && \
+    ln -sf /usr/local/nginx/sbin/nginx /usr/bin/nginx && \
+    rm -rf /usr/local/nginx/conf/nginx.conf && \
+    mkdir -p /home/wwwroot/default && chmod +w /home/wwwroot/default && \
+    mkdir -p /home/wwwlogs && chmod 777 /home/wwwlogs && \
+    chown -R www:www /home/wwwroot/default && mkdir /usr/local/nginx/conf/vhost
+ADD nginx.conf /usr/local/nginx/conf/nginx.conf
+ADD rewrite /usr/local/nginx/conf/
+ADD pathinfo.conf /usr/local/nginx/conf/pathinfo.conf
+ADD enable-php.conf /usr/local/nginx/conf/enable-php.conf
+ADD enable-php-pathinfo.conf /usr/local/nginx/conf/enable-php-pathinfo.conf
+ADD enable-ssl-example.conf /usr/local/nginx/conf/enable-ssl-example.conf
+ADD rewrite /usr/local/nginx/conf/
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
