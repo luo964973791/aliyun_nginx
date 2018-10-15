@@ -2,7 +2,7 @@ FROM alpine:latest
 MAINTAINER NGINX "964973791@qq.com"
 ENV NGINX_VERSION nginx-1.14.0
 ENV NGINX_OPENSSL openssl-1.1.1
-RUN build="gcc libc-dev make openssl-dev pcre-dev zlib-dev linux-headers curl gnupg libxslt-dev gd-dev geoip-dev wget curl tree ca-certificates tzdata" \
+RUN build="bash gcc libc-dev make openssl-dev pcre-dev zlib-dev linux-headers curl gnupg libxslt-dev gd-dev geoip-dev wget curl tree ca-certificates tzdata" \
     && echo -e "http://mirrors.aliyun.com/alpine/latest-stable/main\nhttp://mirrors.aliyun.com/alpine/latest-stable/community" > /etc/apk/repositories \
     && apk update \
     && apk add --no-cache ${build} \
